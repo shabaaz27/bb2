@@ -1,0 +1,7 @@
+{
+  "name": "coffee",
+  "displayName": "BlackBixon2Go User",
+  "android": {
+    "package": "bb2go.com.my"
+  }
+}

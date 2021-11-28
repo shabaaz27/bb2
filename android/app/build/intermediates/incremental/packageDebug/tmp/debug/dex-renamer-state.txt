@@ -1,0 +1,10 @@
+#Sun Nov 28 17:53:56 IST 2021
+base.2=/Users/vinoth/Documents/vesend-consumer-app-master/android/app/build/intermediates/transforms/dexMerger/debug/0
+path.2=classes2.dex
+base.1=/Users/vinoth/Documents/vesend-consumer-app-master/android/app/build/intermediates/transforms/dexMerger/debug/1
+path.1=classes.dex
+base.0=/Users/vinoth/Documents/vesend-consumer-app-master/android/app/build/intermediates/transforms/dexMerger/debug/0
+renamed.2=classes3.dex
+renamed.1=classes2.dex
+renamed.0=classes.dex
+path.0=classes.dex
