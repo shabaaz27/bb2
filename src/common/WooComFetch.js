@@ -22,6 +22,7 @@ export const getHeaders = () => {
   }
 }
 
+
 export const getHeadersaddToOrder = () => {
   const d = new Date();
   const consumerkey = "2c707607757df162c084a9017fa1408d";
@@ -34,12 +35,13 @@ export const getHeadersaddToOrder = () => {
         d.getMilliseconds().toString() +
         d.getTime().toString() +
         '-' +
-        Math.floor(Math.random() * 999) +
+        Math.floor(Math.random() * 999) + 2 +
         1,
       'consumer-device-id': theme.deviceId,
       'consumer-ip': theme.ipAdress + '.' + d.getMilliseconds().toString(),
       "Content-Type": 'multipart/form-data',
-      // 'Accept' : 'multipart/form-data'
+      'Accept' : 'multipart/form-data'
+      // 'Content-Type': 'application/json'
     }
   }
 }
@@ -58,9 +60,9 @@ export const postHttp = async (url, body) => {
 
 export const orderReq = async (url, body) => {
   try {
-    const res = await axios.post(url, body, getHeadersaddToOrder(),{httpsAgent : agent})
+    const res = await axios.post(url, body, getHeadersaddToOrder())
     return res.data
-  } catch (err) {
+  } catch (err) { 
     return err
   }
 }

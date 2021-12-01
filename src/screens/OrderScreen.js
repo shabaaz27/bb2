@@ -289,7 +289,7 @@ class orderScreen extends Component {
     this.setTokenFun(token.tokenId)
   }
 
-  
+
   addOrder = async () => {
     if (SyncStorage.get('orderDetails').payment_method === 'stripe') { await this.handleCustomPayPress(this.state.params) }
     const orderDetail = SyncStorage.get('orderDetails')
@@ -349,7 +349,6 @@ class orderScreen extends Component {
     orderDetail.customers_address_format_id = '1'
     orderDetail.delivery_address_format_id = '1'
     orderDetail.products = this.state.products
-    orderDetail.guest_status = '0'
     /// //////////////////////
     // orderDetail.products.map(val => {
     //   if (val.product !== undefined && val.product !== null) {
@@ -366,10 +365,11 @@ class orderScreen extends Component {
     orderDetail.currency_code = this.props.cartItems2.Config.productsArguments.currency
     if (orderDetail.delivery_state === undefined) { orderDetail.delivery_state = 'other' }
     var dat = orderDetail
-    const data = await postOrder.orderReq(
+    const data = await WooComFetch.postHttp(
       getUrl() + '/api/' + 'addtoorder',
       dat
     )
+    console.log("dataresponse===>",data)
     if (data.success == 1) {
       this.props.cartItems2.cartItems.cartProductArray = []
       this.props.cartItems2.cartItems.couponArray = []
@@ -415,6 +415,7 @@ class orderScreen extends Component {
     }
     this.setState({ SpinnerTemp: false })
   }
+
 
   /// ////////////////////////////////////
   onInit = async () => {
@@ -740,6 +741,46 @@ class orderScreen extends Component {
 
   //iPay88 integraration
   test = async ()=>{
+    const obj =this.state.products;
+
+    let newObjArray = obj.map((item)=>{
+
+      return{
+        ...item,
+      "attributes":item.attributes,
+      "cart_id":item.cart_id,
+      "customers_basket_quantity":item.customers_basket_quantity,
+      "final_price":item.final_price,
+      "image":item.image,
+      "model":item.model,
+      "on_sale":item.on_sale,
+      "price":item.price,
+      "products_id":item.products_id,
+      "products_name":item.products_name,
+      "subtotal":item.subtotal,
+      "total":item.total,
+      "unit":item.unit,
+      "weight":item.weight
+    }
+    })
+    console.log("newproducts=====>" ,newObjArray)
+    const dataorder = [{"attributes":
+    obj[0].attributes,
+    "cart_id":obj[0].cart_id,
+    "customers_basket_quantity":obj[0].customers_basket_quantity,
+    "final_price":obj[0].final_price,
+    "image":obj[0].image,
+    "model":obj[0].model,
+    "on_sale":obj[0].on_sale,
+    "price":obj[0].price,
+    "products_id":obj[0].products_id,
+    "products_name":obj[0].products_name,
+    "subtotal":obj[0].subtotal,
+    "total":obj[0].total,
+    "unit":obj[0].unit,
+    "weight":obj[0].weight
+  }]
+    console.log("products_id===>",dataorder)
     let formData = new FormData()
     
     const orderDetail = SyncStorage.get('orderDetails')
@@ -777,7 +818,7 @@ class orderScreen extends Component {
         formData.append('billing_country',this.state.orderDetail.billing_country.toString())
         formData.append('billing_zone',this.state.orderDetail.billing_city.toString())
         formData.append('payment_method','ipay')
-        formData.append('products',[{"attributes": [], "cart_id": 310, "customers_basket_quantity": 1, "final_price": "5.9", "image": "images/media/2021/11/uojmV15307.jpg", "model": null, "on_sale": false, "price": "5.9", "products_id": 31, "products_name": "Long Black", "subtotal": "5.9", "total": "5.9", "unit": "gm", "weight": "0"}, {"attributes": [], "cart_id": 311, "customers_basket_quantity": 1, "final_price": "5.9", "image": "images/media/2021/11/uojmV15307.jpg", "model": null, "on_sale": false, "price": "5.9", "products_id": 31, "products_name": "Long Black", "subtotal": "5.9", "total": "5.9", "unit": "gm", "weight": "0"}, {"attributes": [], "cart_id": 212, "customers_basket_quantity": 1, "final_price": 1, "image": "images/media/2021/11/CO7gw15404.jpg", "model": null, "on_sale": false, "price": 1, "products_id": 21, "products_name": "Espresso Nutritional", "subtotal": 1, "total": 1, "unit": "gm", "weight": "0"}])
+        formData.append('products',JSON.stringify(dataorder))
         formData.append('totalPrice',"1.00")
         formData.append('currency_code',this.props.cartItems2.Config.productsArguments.currency.toString())
         formData.append('currency_value','2.00')
@@ -870,12 +911,58 @@ class orderScreen extends Component {
     orderDetail.currency_code = this.props.cartItems2.Config.productsArguments.currency
     if (orderDetail.delivery_state === undefined) { orderDetail.delivery_state = 'other' }
     var dat = orderDetail
+      console.log("jbjbhjbhjbijiii",JSON.stringify([{"attributes":obj[0].attributes,"cart_id":obj[0].cart_id,"customers_basket_quantity":obj[0].customers_basket_quantity,"final_price":obj[0].final_price,"image":obj[0].image,"model":obj[0].model,"on_sale":obj[0].on_sale,"price":obj[0].price,"products_id":obj[0].products_id,"products_name":obj[0].products_name,"subtotal":obj[0].subtotal,"total":obj[0].total,"unit":obj[0].unit,"weight":obj[0].weight}]))
+    const formData2 = new FormData()
+    formData2.append('customers_id', 1)
+    formData2.append('products',JSON.stringify(newObjArray))
+    formData2.append('guest_status',"0")
+    formData2.append('email',SyncStorage.get('customerData').email === undefined ||
+        SyncStorage.get('customerData').email === ''
+          ? 'guest@gmail.com'
+          : SyncStorage.get('customerData').email)
+    formData2.append('delivery_firstname',SyncStorage.get('orderDetails').delivery_firstname)
+    formData2.append('delivery_lastname',SyncStorage.get('orderDetails').delivery_lastname)
+    formData2.append('customers_telephone',SyncStorage.get('customerData').customers_telephone === undefined ||
+    SyncStorage.get('orderDetails').delivery_phone === ''
+    ? '123123231312'
+    : SyncStorage.get('customerData').customers_telephone.toString())
+    formData2.append('delivery_street_address',this.state.orderDetail.delivery_street_address)
+    formData2.append('delivery_suburb',this.state.orderDetail.delivery_state)
+    formData2.append('delivery_city',this.state.orderDetail.delivery_city)
+    formData2.append('delivery_postcode',this.state.orderDetail.delivery_postcode.toString())
+    formData2.append('delivery_country',this.state.orderDetail.delivery_country.toString())
+    formData2.append('delivery_zone',this.state.orderDetail.delivery_city.toString())
+    
+    formData2.append('payment_method','ipay')
+   // formData2.append('products',JSON.stringify([{"attributes":[],"cart_id":210,"customers_basket_quantity":3,"final_price":1,"image":"images/media/2021/11/CO7gw15404.jpg","model":null,"on_sale":false,"price":1,"products_id":21,"products_name":"Espresso Nutritional","subtotal":3,"total":3,"unit":"gm","weight":"0"}]))
+    formData2.append('totalPrice',"1.00")
+    formData2.append('currency_code',this.props.cartItems2.Config.productsArguments.currency.toString())
+    formData2.append('currency_value','2.00')
+    formData2.append('total_tax',this.state.orderDetail.total_tax.toString())
+    formData2.append('delivery_phone',SyncStorage.get('orderDetails').delivery_phone === undefined ||
+        SyncStorage.get('orderDetails').delivery_phone === ''
+        ? '123123231312'
+        : SyncStorage.get('orderDetails').delivery_phone)
+    formData2.append('billing_phone', SyncStorage.get('customerData').customers_telephone === undefined ||
+        SyncStorage.get('orderDetails').delivery_phone === ''
+        ? '123123231312'
+        : SyncStorage.get('customerData').customers_telephone)
+    formData2.append('is_coupon_applied',this.state.couponApplied)
+    formData2.append('coupon_amount',this.state.discount)
+    formData2.append('coupons',JSON.stringify(this.state.couponArray))
+    formData2.append('nonce',this.state.token)
+    formData2.append('transaction_id','1234')
+    formData2.append('language_id',SyncStorage.get('langId') === undefined ? 1 : SyncStorage.get('langId'))
+    formData2.append('shipping_cost',this.state.orderDetail.shipping_cost)
+    formData2.append('shipping_method',this.state.orderDetail.shipping_method)
+    formData2.append('comments','Test')
+
     const response = await postOrder.orderReq(
-      'https://bb2go.com'+ '/api/'+'addtoorder',
-      formData
+      'https://www.bb2go.com/public/api/addtoorder',
+      formData2
     )
     console.log('response===>',response)
-    console.log("data===>",formData)
+    console.log("data===>",formData2)
     console.log("log===>",JSON.parse(JSON.stringify(formData)))
   }
 
@@ -887,140 +974,84 @@ class orderScreen extends Component {
       remark,
       authorizationCode
     } = data;
-    const formData = new FormData()
-    
-    const orderDetail = SyncStorage.get('orderDetails')
-    orderDetail.customers_id =
-      SyncStorage.get('customerData').customers_id === undefined
-        ? 1
-        : SyncStorage.get('customerData').customers_id
+    const obj =this.state.products;
+    let newObjArray = obj.map((item)=>{
 
-        formData.append('customers_id',SyncStorage.get('customerData').customers_id === undefined
-        ? 1
-        : SyncStorage.get('customerData').customers_id)
-        formData.append('email',SyncStorage.get('customerData').email === undefined ||
+      return{
+        ...item,
+      "attributes":item.attributes,
+      "cart_id":item.cart_id,
+      "customers_basket_quantity":item.customers_basket_quantity,
+      "final_price":item.final_price,
+      "image":item.image,
+      "model":item.model,
+      "on_sale":item.on_sale,
+      "price":item.price,
+      "products_id":item.products_id,
+      "products_name":item.products_name,
+      "subtotal":item.subtotal,
+      "total":item.total,
+      "unit":item.unit,
+      "weight":item.weight
+    }
+    })
+   
+    const formData2 = new FormData()
+    formData2.append('customers_id',SyncStorage.get('customerData').customers_id === undefined
+    ? 1
+    : SyncStorage.get('customerData').customers_id)
+    formData2.append('products',JSON.stringify(newObjArray))
+    formData2.append('guest_status',"0")
+    formData2.append('email',SyncStorage.get('customerData').email === undefined ||
         SyncStorage.get('customerData').email === ''
           ? 'guest@gmail.com'
           : SyncStorage.get('customerData').email)
-        formData.append('guest_status',0)
-        formData.append('delivery_firstname',SyncStorage.get('orderDetails').delivery_firstname)
-        formData.append('delivery_lastname',SyncStorage.get('orderDetails').delivery_lastname)
-        formData.append('customers_telephone',SyncStorage.get('customerData').customers_telephone === undefined ||
-        SyncStorage.get('orderDetails').delivery_phone === ''
-        ? '123123231312'
-        : SyncStorage.get('customerData').customers_telephone)
-        formData.append('delivery_street_address',this.state.orderDetail.delivery_street_address)
-        formData.append('delivery_suburb',this.state.orderDetail.delivery_state)
-        formData.append('delivery_city',this.state.orderDetail.delivery_city)
-        formData.append('delivery_postcode',this.state.orderDetail.delivery_postcode)
-        formData.append('delivery_country',this.state.orderDetail.delivery_country)
-        formData.append('delivery_zone',this.state.orderDetail.delivery_city)
-        formData.append('billing_firstname',SyncStorage.get('orderDetails').billing_firstname)
-        formData.append('billing_lastname', SyncStorage.get('orderDetails').billing_lastname)
-        formData.append('billing_street_address',this.state.orderDetail.billing_street_address)
-        formData.append('billing_city',this.state.orderDetail.billing_city)
-        formData.append('billing_suburb',this.state.orderDetail.billing_state )
-        formData.append('billing_postcode',this.state.orderDetail.billing_postcode )
-        formData.append('billing_country',this.state.orderDetail.billing_country)
-        formData.append('billing_zone',this.state.orderDetail.billing_city)
-        formData.append('payment_method','Ipay88')
-        formData.append('products',this.state.products)
-        formData.append('totalPrice',this.state.totalAmountWithDisocunt)
-        formData.append('currency_code',this.props.cartItems2.Config.productsArguments.currency)
-        formData.append('currency_value',amount)
-        formData.append('total_tax',this.state.orderDetail.total_tax)
-        formData.append('delivery_phone',SyncStorage.get('orderDetails').delivery_phone === undefined ||
+    formData2.append('delivery_firstname',SyncStorage.get('orderDetails').delivery_firstname)
+    formData2.append('delivery_lastname',SyncStorage.get('orderDetails').delivery_lastname)
+    formData2.append('customers_telephone',SyncStorage.get('customerData').customers_telephone === undefined ||
+    SyncStorage.get('orderDetails').delivery_phone === ''
+    ? '123123231312'
+    : SyncStorage.get('customerData').customers_telephone.toString())
+    formData2.append('delivery_street_address',this.state.orderDetail.delivery_street_address)
+    formData2.append('delivery_suburb',this.state.orderDetail.delivery_state)
+    formData2.append('delivery_city',this.state.orderDetail.delivery_city)
+    formData2.append('delivery_postcode',this.state.orderDetail.delivery_postcode.toString())
+    formData2.append('delivery_country',this.state.orderDetail.delivery_country.toString())
+    formData2.append('delivery_zone',this.state.orderDetail.delivery_city.toString())
+    
+    formData2.append('payment_method','ipay')
+   // formData2.append('products',JSON.stringify([{"attributes":[],"cart_id":210,"customers_basket_quantity":3,"final_price":1,"image":"images/media/2021/11/CO7gw15404.jpg","model":null,"on_sale":false,"price":1,"products_id":21,"products_name":"Espresso Nutritional","subtotal":3,"total":3,"unit":"gm","weight":"0"}]))
+    formData2.append('totalPrice',amount)
+    formData2.append('currency_code',this.props.cartItems2.Config.productsArguments.currency.toString())
+    formData2.append('currency_value',)
+    formData2.append('total_tax',this.state.orderDetail.total_tax.toString())
+    formData2.append('delivery_phone',SyncStorage.get('orderDetails').delivery_phone === undefined ||
         SyncStorage.get('orderDetails').delivery_phone === ''
         ? '123123231312'
         : SyncStorage.get('orderDetails').delivery_phone)
-        formData.append('billing_phone', SyncStorage.get('customerData').customers_telephone === undefined ||
+    formData2.append('billing_phone', SyncStorage.get('customerData').customers_telephone === undefined ||
         SyncStorage.get('orderDetails').delivery_phone === ''
         ? '123123231312'
         : SyncStorage.get('customerData').customers_telephone)
-        formData.append('is_coupon_applied',this.state.couponApplied)
-        formData.append('coupon_amount',this.state.discount)
-        formData.append('coupons',this.state.couponArray)
-        formData.append('nonce',this.state.token)
-        formData.append('transaction_id',transactionId)
-        formData.append('language_id',SyncStorage.get('langId') === undefined ? 1 : SyncStorage.get('langId'))
-        formData.append('shipping_cost',this.state.orderDetail.shipping_cost)
-        formData.append('shipping_method',this.state.orderDetail.shipping_method)
-        formData.append('comments','Test')
-        
+    formData2.append('is_coupon_applied',this.state.couponApplied)
+    formData2.append('coupon_amount',this.state.discount)
+    formData2.append('coupons',JSON.stringify(this.state.couponArray))
+    formData2.append('nonce',this.state.token)
+    formData2.append('transaction_id',transactionId)
+    formData2.append('language_id',SyncStorage.get('langId') === undefined ? 1 : SyncStorage.get('langId'))
+    formData2.append('shipping_cost',this.state.orderDetail.shipping_cost)
+    formData2.append('shipping_method',this.state.orderDetail.shipping_method)
+    formData2.append('comments',this.state.customerNotes)
 
-    orderDetail.customers_name =
-      SyncStorage.get('orderDetails').delivery_firstname +
-      ' ' +
-      SyncStorage.get('orderDetails').delivery_lastname
-    orderDetail.delivery_name =
-      SyncStorage.get('orderDetails').billing_firstname +
-      ' ' +
-      SyncStorage.get('orderDetails').billing_lastname
-    if (SyncStorage.get('orderDetails').guest_status == 1) {
-      orderDetail.email =
-        SyncStorage.get('customerData').email === undefined ||
-        SyncStorage.get('customerData').email === ''
-          ? 'guest@gmail.com'
-          : SyncStorage.get('customerData').email
-      orderDetail.customers_telephone =
-        SyncStorage.get('orderDetails').delivery_phone === undefined ||
-          SyncStorage.get('orderDetails').delivery_phone === ''
-          ? '123123231312'
-          : SyncStorage.get('orderDetails').delivery_phone
-      orderDetail.delivery_phone =
-          SyncStorage.get('orderDetails').delivery_phone === undefined ||
-          SyncStorage.get('orderDetails').delivery_phone === ''
-            ? '123123231312'
-            : SyncStorage.get('orderDetails').delivery_phone
-    } else {
-      orderDetail.email =
-        SyncStorage.get('customerData').email === undefined ||
-        SyncStorage.get('customerData').email === ''
-          ? 'guest@gmail.com'
-          : SyncStorage.get('customerData').email
-      orderDetail.customers_telephone =
-        SyncStorage.get('customerData').customers_telephone === undefined ||
-          SyncStorage.get('orderDetails').delivery_phone === ''
-          ? '123123231312'
-          : SyncStorage.get('customerData').customers_telephone
-      orderDetail.delivery_phone =
-          SyncStorage.get('orderDetails').delivery_phone === undefined ||
-          SyncStorage.get('orderDetails').delivery_phone === ''
-            ? '123123231312'
-            : SyncStorage.get('orderDetails').delivery_phone
-    }
-    orderDetail.delivery_suburb =
-      SyncStorage.get('orderDetails').delivery_state === undefined
-        ? '0'
-        : SyncStorage.get('orderDetails').delivery_state
-    orderDetail.customers_suburb =
-      SyncStorage.get('orderDetails').delivery_state === undefined
-        ? '0'
-        : SyncStorage.get('orderDetails').delivery_state
-    orderDetail.customers_address_format_id = '1'
-    orderDetail.delivery_address_format_id = '1'
-    orderDetail.products = this.state.products
-    /// //////////////////////
-    // orderDetail.products.map(val => {
-    //   if (val.product !== undefined && val.product !== null) {
-    //     val.product = undefined
-    //   }
-    // })
-    orderDetail.is_coupon_applied = this.state.couponApplied
-    orderDetail.coupons = this.state.couponArray
-    orderDetail.coupon_amount = this.state.discount
-    orderDetail.totalPrice = this.state.totalAmountWithDisocunt
-    orderDetail.nonce = this.state.token
-    orderDetail.transaction_id = transactionId
-    orderDetail.language_id =
-      SyncStorage.get('langId') === undefined ? 1 : SyncStorage.get('langId')
-    orderDetail.currency_code = this.props.cartItems2.Config.productsArguments.currency
-    if (orderDetail.delivery_state === undefined) { orderDetail.delivery_state = 'other' }
-    var dat = orderDetail
     const response = await postOrder.orderReq(
-      getUrl() + '/api/' + 'addtoorder',
-      JSON.stringify(formData)
+      'https://www.bb2go.com/public/api/addtoorder',
+      formData2
     )
+    console.log('response===>',response)
+    console.log("data===>",formData2)
+    console.log("log===>",JSON.parse(JSON.stringify(formData)))
+  
+
     console.log('response===>',response)
     if (response.success == 1) {
       this.props.cartItems2.cartItems.cartProductArray = []
@@ -1121,11 +1152,13 @@ class orderScreen extends Component {
     try {
       const money = amount.toString().trim();
       const data = {};
+      //  data.merchantKey = "VUTBcqLLUy";
+      // data.merchantCode = "M33684_S0001";
       data.merchantKey = "odMr5c0yIL";
       data.merchantCode = "M03238";
-      data.paymentId = "2"; // refer to ipay88 docs    
+      data.paymentId = " "; // refer to ipay88 docs    
       data.referenceNo = Number(Math.floor(Math.random() * id + 1000 * Math.random() * 10)).toString() ;
-      data.amount = money ;
+      data.amount = "1.00";
       data.currency = "MYR";
       data.productDescription = "Payment";
       data.userName = name ;
@@ -1176,8 +1209,8 @@ class orderScreen extends Component {
 
   }
   componentDidMount () {
-    this.test();
-    
+    this.addOrder()
+    // this.test();
     console.log('productslist====>',this.getProducts())
     console.log('products',this.state.products)
     this.calculateTotal()
@@ -1195,6 +1228,7 @@ class orderScreen extends Component {
 
     console.log('jsonStringify',JSON.stringify(SyncStorage.get('cartProducts')))
     console.log('jsonParse',JSON.parse(JSON.stringify(SyncStorage.get('cartProducts'))))
+    //this.test();
   }
 
   render () {
@@ -1360,7 +1394,7 @@ class orderScreen extends Component {
                 paddingLeft: 6,
                 paddingBottom: 5
               }}>
-             <Text style={{fontSize: themeStyle.mediumSize,color:themeStyle.textColor}}>Credit and Debit Cards</Text>
+             <Text style={{fontSize: themeStyle.mediumSize,color:themeStyle.textColor,textAlign:"left"}}>iPay88 Payment</Text>
             </View>
           </TouchableOpacity>   
           <View
